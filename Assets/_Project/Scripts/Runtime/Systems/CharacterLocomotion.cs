@@ -25,7 +25,10 @@ public class CharacterLocomotion : MonoBehaviour
 
     private Vector3 velocity;
 
-
+    private void Awake()
+    {
+        Application.targetFrameRate = 60;
+    }
     private void Start()
     {
         animator = GetComponent<Animator>();
