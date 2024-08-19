@@ -11,7 +11,7 @@ public class RaycastWeapon : MonoBehaviour
 
     public Animator aimAnim;
 
-    public void StartFire(Transform raycastOrigin)
+    public void StartFire(Transform raycastOrigin, int valueDamage)
     {
         ray.origin = raycastOrigin.position;
         ray.direction = raycastDestination.position - raycastOrigin.position;
@@ -26,6 +26,9 @@ public class RaycastWeapon : MonoBehaviour
             HitBubble.transform.position = hitInfo.point;
             HitBubble.transform.forward = hitInfo.normal;
             HitBubble.Play();
+
+            hitInfo.collider.gameObject.SendMessage("GetDamage",
+                valueDamage, SendMessageOptions.DontRequireReceiver);
         }
     }
 }

@@ -4,6 +4,8 @@ using UnityEngine.Animations.Rigging;
 
 public class CharacterAim : MonoBehaviour
 {
+    
+
     public float turnSpeed = 15f;
     private Camera mainCamera;
     private bool hasWeapon;
@@ -26,9 +28,11 @@ public class CharacterAim : MonoBehaviour
     public RigBuilder rigBuilder;
     public Vector2[] idRigLayer; // eixo x arma, eixo y a layer
 
+    // tudo da arma ir pra um scriptable object
     [Header("Weapon Manager")]
     public int idWeapon;
     public GameObject[] weapons;
+    public int[] amountDamage;
     public float[] delayShoot;
     public bool[] isRapidFire;
     public Rig[] RlWeaponAim;
@@ -129,7 +133,7 @@ public class CharacterAim : MonoBehaviour
 
     private void FireWeapon()
     {
-        raycastWeapon.StartFire(raycastOrigins[idWeapon]);
+        raycastWeapon.StartFire(raycastOrigins[idWeapon], amountDamage[idWeapon]);
         cameraShake.GenerateImpulse(playerCamera.transform.forward);
         yAxis.Value -= 0.5f;
     }
