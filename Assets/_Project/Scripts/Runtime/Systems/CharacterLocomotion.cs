@@ -71,7 +71,7 @@ public class CharacterLocomotion : MonoBehaviour
         animator.SetFloat("InputY", input.y);
         animator.SetFloat("MovementSpeed", movementSpeed);
 
-       // animator.SetFloat("Velocity", velocity.y);
+       //animator.SetFloat("Velocity", velocity.y);
     }
 
     private void FixedUpdate()
