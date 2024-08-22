@@ -10,6 +10,7 @@ public class EnemyAI : MonoBehaviour
 
     private NavMeshAgent agent;
     private GameManager gameManager; 
+    private Animator animator;
 
     public EnemyState currentState;
 
@@ -17,10 +18,12 @@ public class EnemyAI : MonoBehaviour
     public int idWaypoint;
     public Transform[] waypoints;
     private Transform target;
+    private bool isEndPatrol;
 
     private void Start()
     {
         gameManager = FindObjectOfType<GameManager>();
+        animator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
         SetDestinationAgent(transform.position);
         OnStateEnter(currentState);
@@ -47,11 +50,15 @@ public class EnemyAI : MonoBehaviour
         {
             case EnemyState.Idle:
                 StartCoroutine("Idle");
+                animator.SetInteger("IdAnimation", 0);
                 print("Entrou em Idle");
                 break;
             case EnemyState.Patrol:
-               
-
+                animator.SetInteger("IdAnimation", 1);
+                isEndPatrol = false;
+                idWaypoint = 0;
+                SetDestinationAgent(waypoints[idWaypoint].position);
+                agent.stoppingDistance = 0.5f;
                 print("Entrou em Patrol");
                 break;
             case EnemyState.Follow:
@@ -77,7 +84,23 @@ public class EnemyAI : MonoBehaviour
 
     private void Patroling()
     {
+        if (agent.remainingDistance <= agent.stoppingDistance
+            && !isEndPatrol)
+        {
+            idWaypoint = (idWaypoint + 1) % waypoints.Length;
+            SetDestinationAgent(waypoints[idWaypoint].position);
 
+            if (idWaypoint.Equals(0))
+            {
+                agent.stoppingDistance = 0;
+                isEndPatrol = true;
+            }
+        }
+        else if (agent.remainingDistance <= agent.stoppingDistance
+            && isEndPatrol)
+        {
+            OnStateEnter(EnemyState.Idle);
+        }
     }
 
     private IEnumerator Idle()
