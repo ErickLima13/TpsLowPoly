@@ -12,8 +12,9 @@ public class GameManager : MonoBehaviour
 {
     [Header("Enemy AI Setup")]
     public float idleWaitTime;
+    public float patrolWaitTime;
     public int percPatrol;
-
+    
 
     public bool RandomSystem(int perc)
     {

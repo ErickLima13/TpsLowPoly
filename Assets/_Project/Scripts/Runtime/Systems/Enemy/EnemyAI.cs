@@ -4,10 +4,6 @@ using UnityEngine.AI;
 
 public class EnemyAI : MonoBehaviour
 {
-
-    // Auto battler dos soldadinhos, eles se atacam e esperam x tempo, O modificador externo vai ser rolar um dado de 4 faces, 
-    // 1 - aumenta a velocidade de ataque. 2 - aumenta o poder de ataque, 3 - aumenta a vida, 4 - ganha outro dado.
-
     private NavMeshAgent agent;
     private GameManager gameManager; 
     private Animator animator;
@@ -18,7 +14,9 @@ public class EnemyAI : MonoBehaviour
     public int idWaypoint;
     public Transform[] waypoints;
     private Transform target;
+    public bool isWaitWayPoint;
     private bool isEndPatrol;
+    private bool isWaitPatrol;
 
     private void Start()
     {
@@ -50,13 +48,11 @@ public class EnemyAI : MonoBehaviour
         {
             case EnemyState.Idle:
                 StartCoroutine("Idle");
-                animator.SetInteger("IdAnimation", 0);
                 print("Entrou em Idle");
                 break;
             case EnemyState.Patrol:
-                animator.SetInteger("IdAnimation", 1);
                 isEndPatrol = false;
-                idWaypoint = 0;
+                idWaypoint = 1;
                 SetDestinationAgent(waypoints[idWaypoint].position);
                 agent.stoppingDistance = 0.5f;
                 print("Entrou em Patrol");
@@ -72,6 +68,8 @@ public class EnemyAI : MonoBehaviour
 
     private void UpdateEnemyState()
     {
+        animator.SetFloat("velocity", agent.desiredVelocity.magnitude);
+
         switch (currentState)
         {
             case EnemyState.Patrol:
@@ -85,16 +83,17 @@ public class EnemyAI : MonoBehaviour
     private void Patroling()
     {
         if (agent.remainingDistance <= agent.stoppingDistance
-            && !isEndPatrol)
+            && !isEndPatrol && !isWaitPatrol)
         {
-            idWaypoint = (idWaypoint + 1) % waypoints.Length;
-            SetDestinationAgent(waypoints[idWaypoint].position);
-
-            if (idWaypoint.Equals(0))
+            if (isWaitWayPoint)
             {
-                agent.stoppingDistance = 0;
-                isEndPatrol = true;
+                StartCoroutine("Patrol");
             }
+            else
+            {
+                SetNewDestination();
+            }
+          
         }
         else if (agent.remainingDistance <= agent.stoppingDistance
             && isEndPatrol)
@@ -118,7 +117,26 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    private IEnumerator Patrol()
+    {
+        isWaitPatrol = true;
+        yield return new WaitForSeconds(gameManager.patrolWaitTime);
+        SetNewDestination();
+        isWaitPatrol = false;
+    }
+
+    private void SetNewDestination()
+    {
+        idWaypoint = (idWaypoint + 1) % waypoints.Length;
+        SetDestinationAgent(waypoints[idWaypoint].position);
   
+        if (idWaypoint.Equals(0))
+        {
+            agent.stoppingDistance = 0;
+            isEndPatrol = true;
+        }
+    }
+
 
     #endregion
 

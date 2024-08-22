@@ -22,7 +22,8 @@ public class RaycastWeapon : MonoBehaviour
 
         if (Physics.Raycast(ray, out hitInfo))
         {
-            //Debug.DrawLine(ray.origin, hitInfo.point, Color.green, 1f);
+            Debug.DrawLine(ray.origin, hitInfo.point, Color.green, 1f);
+
             HitBubble.transform.position = hitInfo.point;
             HitBubble.transform.forward = hitInfo.normal;
             HitBubble.Play();
