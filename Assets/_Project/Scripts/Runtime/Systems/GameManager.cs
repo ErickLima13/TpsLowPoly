@@ -1,11 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 
 public enum EnemyState
 {
-    Idle,Patrol,Follow,Alert,Attack
+    Idle, Patrol, Follow, Alert, Attack
 }
 
 public class GameManager : MonoBehaviour
@@ -14,7 +12,7 @@ public class GameManager : MonoBehaviour
     public float idleWaitTime;
     public float patrolWaitTime;
     public int percPatrol;
-    
+
 
     public bool RandomSystem(int perc)
     {

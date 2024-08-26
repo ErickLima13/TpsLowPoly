@@ -11,8 +11,6 @@ public class RaycastWeapon : MonoBehaviour
 
     public Animator aimAnim;
 
-    public bool isAuto;
-
     public void StartFire(Transform raycastOrigin, int valueDamage)
     {
         ray.origin = raycastOrigin.position;
@@ -21,7 +19,7 @@ public class RaycastWeapon : MonoBehaviour
         bubbleMuzzle.transform.position = raycastOrigin.position;
         bubbleMuzzle.Play();
 
-       // aimAnim.SetTrigger("shoot");
+        // aimAnim.SetTrigger("shoot");
 
         if (Physics.Raycast(ray, out hitInfo))
         {

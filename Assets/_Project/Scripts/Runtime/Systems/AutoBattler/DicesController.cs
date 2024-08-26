@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class DicesController : MonoBehaviour
 {
+    private string templateBase;
+
     public List<int> dices = new List<int>();
 
     public HpController hpPlayer;
@@ -18,13 +20,15 @@ public class DicesController : MonoBehaviour
     public float powerUpTime;
 
     public TextMeshProUGUI diceValue;
+    public TextMeshProUGUI diceReward;
 
     private void Start()
     {
         speedPlayer = combatPlayer.attackSpeed;
         damagePlayer = combatPlayer.damageAmount[0];
 
-        diceValue.text = "x " + dices.Count; 
+        diceValue.text = "x " + dices.Count;
+        diceReward.text = null;
     }
 
     [ContextMenu("SortANumber")]
@@ -37,20 +41,19 @@ public class DicesController : MonoBehaviour
             switch (randomValue)
             {
                 case 0: // tirar 1 no dado 
-                    StartCoroutine("DelayPowerUp");
-                    print("ganhei velocidade");
+                    StartCoroutine("DelayPowerUp",0);
+                    templateBase = "ganhei velocidade";
                     break;
                 case 1: // tirar 2 no dado 
-                    combatPlayer.damageAmount[0] += 1;
-                    print("ganhei dano");
+                    StartCoroutine("DelayPowerUp",1);
+                    templateBase = "ganhei dano";
                     break;
                 case 2: // tirar 3 no dado 
                     hpPlayer.hp += 5;
-                    print("ganhei vida");
+                    templateBase = "ganhei vida";
                     break;
                 case 3: // tirar 4 no dado 
-                    dices.Add(1);
-                    print("ganhei um dado");
+                    AddDice();
                     break;
             }
 
@@ -58,19 +61,47 @@ public class DicesController : MonoBehaviour
         }
         else
         {
-            print("sem dados");
+            templateBase = "sem dados";
         }
 
-        diceValue.text = "x " + dices.Count;
+        UpdateReward();
     }
 
-    private IEnumerator DelayPowerUp()
+    private void UpdateReward()
     {
-        combatPlayer.attackSpeed -= 0.2f;
+        diceValue.text = "x " + dices.Count;
+        diceReward.text = templateBase;
+        StartCoroutine("DelayPowerUpText");
+    }
 
-        yield return new WaitForSeconds(powerUpTime);
+    public void AddDice()
+    {
+        dices.Add(1);
+        templateBase = "ganhei um dado";
+        UpdateReward();
+    }
 
-        combatPlayer.attackSpeed = speedPlayer;
+    private IEnumerator DelayPowerUpText()
+    {
+        yield return new WaitForSeconds(1.5f);
+        diceReward.text = null;
+    }
+
+    private IEnumerator DelayPowerUp(int value)
+    {
+        switch (value)
+        {
+            case 0:
+                combatPlayer.attackSpeed -= 0.2f;
+                yield return new WaitForSeconds(powerUpTime);
+                combatPlayer.attackSpeed = speedPlayer;
+                break;
+            case 1:
+                combatPlayer.damageAmount[0] += 1;
+                yield return new WaitForSeconds(powerUpTime);
+                combatPlayer.damageAmount[0] = damagePlayer;
+                break;
+        }
     }
 
 }

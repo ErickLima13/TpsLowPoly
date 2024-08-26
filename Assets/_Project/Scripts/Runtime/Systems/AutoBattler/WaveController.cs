@@ -2,11 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using UnityEngine;
 
 public class WaveController : MonoBehaviour
 {
+    private DicesController dicesController;
+
     public event Action NewEnemyEvent;
 
     public List<HpController> enemies = new();
@@ -17,7 +18,8 @@ public class WaveController : MonoBehaviour
 
     private void Start()
     {
-        enemies = FindObjectsOfType<HpController>().ToList();
+        enemies = FindObjectsOfType<HpController>(true).ToList(); // true para pegar objetos desativados
+        dicesController = FindObjectOfType<DicesController>();
 
         foreach (HpController h in enemies)
         {
@@ -56,11 +58,13 @@ public class WaveController : MonoBehaviour
                 enemy = h;
             }
         }
+
+        dicesController.AddDice();
+
         yield return new WaitForSeconds(timeToSpawn);
         enemy.isDead = false;
-        enemy.gameObject.SetActive(true);
-
-        NewEnemyEvent();
+        enemy.gameObject.SetActive(true);     
+        NewEnemyEvent?.Invoke();
     }
 
 
