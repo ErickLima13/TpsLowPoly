@@ -462,6 +462,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemies: []
   timeToSpawn: 1
+  waveNumber: 0
 --- !u!4 &721478008
 Transform:
   m_ObjectHideFlags: 0
@@ -671,7 +672,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dices: 010000000200000003000000
   hpPlayer: {fileID: 1788577677}
-  combatPlayer: {fileID: 1788577674}
   randomValue: 0
   speedPlayer: 0
   damagePlayer: 0
@@ -1495,17 +1495,6 @@ Transform:
   - {fileID: 1407354012}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 30, y: -45, z: 0}
---- !u!114 &1788577674 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5777641697718509151, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
-  m_PrefabInstance: {fileID: 508852578422926800}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 83054ee8cc1973049b5fd2f6c5bab292, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1788577677 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4377970476579257899, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
@@ -1635,6 +1624,34 @@ PrefabInstance:
       propertyPath: hp
       value: 999
       objectReference: {fileID: 0}
+    - target: {fileID: 4377970476579257899, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
+      propertyPath: attackSpeed
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4377970476579257899, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
+      propertyPath: attributes.hp
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 4377970476579257899, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
+      propertyPath: attributes.attackSpeed
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4377970476579257899, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
+      propertyPath: damageAmount.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4377970476579257899, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
+      propertyPath: damageAmount.Array.data[0]
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4377970476579257899, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
+      propertyPath: attributes.damageAmount.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4377970476579257899, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
+      propertyPath: attributes.damageAmount.Array.data[0]
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5777641697718509151, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
       propertyPath: barTime
       value: 
@@ -1642,6 +1659,18 @@ PrefabInstance:
     - target: {fileID: 5777641697718509151, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
       propertyPath: attackSpeed
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5777641697718509151, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
+      propertyPath: status.OnDied.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5777641697718509151, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
+      propertyPath: status.OnDied.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5777641697718509151, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
+      propertyPath: status.OnDied.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6741944984803081737, guid: fcb29669da8759c4ead70fe7c8130652, type: 3}
       propertyPath: barTime
@@ -1762,12 +1791,40 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3287389506808906667, guid: 498e2b3044947184e9448df9909d3e53, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4147206434941712046, guid: 498e2b3044947184e9448df9909d3e53, type: 3}
       propertyPath: barTime
       value: 
       objectReference: {fileID: 984927666}
+    - target: {fileID: 8313614716270449417, guid: 498e2b3044947184e9448df9909d3e53, type: 3}
+      propertyPath: attackSpeed
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 8313614716270449417, guid: 498e2b3044947184e9448df9909d3e53, type: 3}
+      propertyPath: attributes.hp
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 8313614716270449417, guid: 498e2b3044947184e9448df9909d3e53, type: 3}
+      propertyPath: attributes.attackSpeed
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 8313614716270449417, guid: 498e2b3044947184e9448df9909d3e53, type: 3}
+      propertyPath: damageAmount.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8313614716270449417, guid: 498e2b3044947184e9448df9909d3e53, type: 3}
+      propertyPath: damageAmount.Array.data[0]
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8313614716270449417, guid: 498e2b3044947184e9448df9909d3e53, type: 3}
+      propertyPath: attributes.damageAmount.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8313614716270449417, guid: 498e2b3044947184e9448df9909d3e53, type: 3}
+      propertyPath: attributes.damageAmount.Array.data[0]
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public enum AutoState
@@ -16,7 +18,7 @@ public class AutoCombat : MonoBehaviour
     private RaycastWeapon raycastWeapon;
 
     public float viewRadius;
-    public float attackSpeed;
+   // public float attackSpeed; // velocidade de ataque
     public LayerMask targetMask;
     public Transform targetTransform;
 
@@ -24,7 +26,7 @@ public class AutoCombat : MonoBehaviour
     public HpController myHp;
 
     public Transform[] originWeapons;
-    public int[] damageAmount;
+    //public int[] damageAmount; // dano
     public Rig aimLayer;
 
     public Image barTime;
@@ -45,10 +47,10 @@ public class AutoCombat : MonoBehaviour
     }
     private void Update()
     {
-        if (time < attackSpeed && isAttack)
+        if (time < myHp.attributes.attackSpeed && isAttack)
         {
             time += Time.deltaTime;
-            barTime.fillAmount = time / attackSpeed;
+            barTime.fillAmount = time / myHp.attributes.attackSpeed;
         }
 
         UpdateState();
@@ -131,11 +133,11 @@ public class AutoCombat : MonoBehaviour
         while (!targetHp.isDead && !myHp.isDead)
         {
             isAttack = true;
-            yield return new WaitForSeconds(attackSpeed);
+            yield return new WaitForSeconds(myHp.attributes.attackSpeed);
             aimLayer.weight = 1;
             yield return new WaitForEndOfFrame();
             raycastWeapon.raycastDestination = targetTransform;
-            raycastWeapon.StartFire(originWeapons[0], damageAmount[0]);
+            raycastWeapon.StartFire(originWeapons[0], myHp.attributes.damageAmount[0]);
             time = 0;
             isAttack = false;
         }

@@ -15,6 +15,9 @@ public class WaveController : MonoBehaviour
     public float timeToSpawn;
 
     private HpController enemy;
+    private HpController player;
+
+    public int waveNumber;
 
     private void Start()
     {
@@ -25,7 +28,11 @@ public class WaveController : MonoBehaviour
         {
             if (!h.isPlayer)
             {
-                h.Ondie += RespawEnemy;
+                h.OnEnemyDie += RespawEnemy;
+            }
+            else
+            {
+                player = h;
             }
         }
     }
@@ -38,18 +45,21 @@ public class WaveController : MonoBehaviour
         {
             if (!h.isPlayer)
             {
-                h.Ondie -= RespawEnemy;
+                h.OnEnemyDie -= RespawEnemy;
             }
         }
     }
 
     private void RespawEnemy()
     {
+        
         StartCoroutine("RespawnDelay");
     }
 
     private IEnumerator RespawnDelay()
     {
+        waveNumber++;
+
         foreach (HpController h in enemies)
         {
             if (!h.isPlayer)
@@ -60,8 +70,11 @@ public class WaveController : MonoBehaviour
         }
 
         dicesController.AddDice();
+        enemy.LevelUpEnemy(waveNumber);
+        player.PlayerUp(waveNumber);
 
         yield return new WaitForSeconds(timeToSpawn);
+
         enemy.isDead = false;
         enemy.gameObject.SetActive(true);     
         NewEnemyEvent?.Invoke();
