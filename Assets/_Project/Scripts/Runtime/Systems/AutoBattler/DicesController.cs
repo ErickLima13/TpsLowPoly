@@ -2,9 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class DicesController : MonoBehaviour
 {
+    private WaveController waveController;
+
     private string templateBase;
 
     public List<int> dices = new List<int>();
@@ -23,6 +26,7 @@ public class DicesController : MonoBehaviour
 
     private void Start()
     {
+        waveController = FindObjectOfType<WaveController>();
         speedPlayer = hpPlayer.attributes.attackSpeed;
         damagePlayer = hpPlayer.attributes.damageAmount[0];
 
@@ -52,7 +56,9 @@ public class DicesController : MonoBehaviour
                     templateBase = "ganhei vida";
                     break;
                 case 3: // tirar 4 no dado 
-                    AddDice();
+                    hpPlayer.SendMessage("GetDamage",
+                waveController.waveNumber, SendMessageOptions.DontRequireReceiver);
+                    templateBase = "perdeu " + waveController.waveNumber + " de vida";
                     break;
             }
 

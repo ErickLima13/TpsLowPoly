@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class WaveController : MonoBehaviour
 {
@@ -18,6 +20,8 @@ public class WaveController : MonoBehaviour
     private HpController player;
 
     public int waveNumber;
+    public TextMeshProUGUI waveText;
+
 
     private void Start()
     {
@@ -29,12 +33,16 @@ public class WaveController : MonoBehaviour
             if (!h.isPlayer)
             {
                 h.OnEnemyDie += RespawEnemy;
+                enemy = h;
             }
             else
             {
                 player = h;
             }
         }
+
+        waveText.text = "Loop " + waveNumber;
+        StartCoroutine("ActiveEnemy");
     }
 
     private void OnDestroy()
@@ -48,17 +56,27 @@ public class WaveController : MonoBehaviour
                 h.OnEnemyDie -= RespawEnemy;
             }
         }
+
+        
     }
+
+    private IEnumerator ActiveEnemy()
+    {
+        yield return new WaitForSeconds(timeToSpawn);
+        enemy.gameObject.SetActive(true);
+    }
+
 
     private void RespawEnemy()
     {
-        
+
         StartCoroutine("RespawnDelay");
     }
 
     private IEnumerator RespawnDelay()
     {
         waveNumber++;
+        waveText.text = "Loop " + waveNumber;
 
         foreach (HpController h in enemies)
         {
@@ -70,15 +88,19 @@ public class WaveController : MonoBehaviour
         }
 
         dicesController.AddDice();
+
         enemy.LevelUpEnemy(waveNumber);
         player.PlayerUp(waveNumber);
 
         yield return new WaitForSeconds(timeToSpawn);
 
         enemy.isDead = false;
-        enemy.gameObject.SetActive(true);     
+        enemy.gameObject.SetActive(true);
         NewEnemyEvent?.Invoke();
     }
 
-
+    public void ResetLevel()
+    {
+        SceneManager.LoadScene(0);
+    }
 }

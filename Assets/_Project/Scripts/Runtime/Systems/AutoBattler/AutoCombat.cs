@@ -85,6 +85,7 @@ public class AutoCombat : MonoBehaviour
                 StartCoroutine("Idle");
                 break;
             case AutoState.Combat:
+                time = 0;
                 StartCoroutine("Combat");
                 break;
             case AutoState.Die:
@@ -96,7 +97,7 @@ public class AutoCombat : MonoBehaviour
     {
         targetTransform = null;
         aimLayer.weight = 0;
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(0.5f);
         FindTarget();
     }
 
