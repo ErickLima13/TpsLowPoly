@@ -41,7 +41,7 @@ public class WaveController : MonoBehaviour
             }
         }
 
-        waveText.text = "Loop " + waveNumber;
+        waveText.text = "Loops " + waveNumber;
         StartCoroutine("ActiveEnemy");
     }
 

@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using TMPro;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -20,13 +19,15 @@ public class HpController : MonoBehaviour
     public event Action OnEnemyDie;
     public event Action OnPlayerDie;
 
-    private int totalHp;
+    public int totalHp;
 
     public bool isDead;
     public bool isPlayer;
 
     [Header("Attributes")]
     public Attributes attributes;
+
+    public GameObject popUpText;
 
     private void Start()
     {
@@ -57,23 +58,30 @@ public class HpController : MonoBehaviour
     {
         print("player melhora");
 
-        attributes.hp += Random.Range(0, 5) + value;
+        float perc = totalHp * 0.1f + value;
+        print(perc + " por centos");
 
-        if (attributes.damageAmount[0] < value / 2)
+        if (attributes.hp < totalHp)
         {
-            attributes.damageAmount[0] += 1;
+            attributes.hp += (int)perc;
         }
+
+
+        //if (attributes.damageAmount[0] < value / 2)
+        //{
+        //    attributes.damageAmount[0] += 1;
+        //}
 
         UpdateHud();
     }
 
     public void LevelUpEnemy(int value)
     {
-        attributes.hp = Random.Range(value + totalHp, value * value);
+        attributes.hp = Random.Range(15, value * 3);
+        totalHp = attributes.hp;
+        attributes.attackSpeed = Random.Range(0.8f, 1.2f);
 
-        attributes.attackSpeed = Random.Range(0.8f, 1.6f);
-
-        attributes.damageAmount[0] = Random.Range(1, value / 2);
+        attributes.damageAmount[0] = Random.Range(1, value);
 
         print("vida " + attributes.hp);
 
@@ -85,10 +93,36 @@ public class HpController : MonoBehaviour
         //Debug.LogError("Morreu");
     }
 
-    private void UpdateHud()
+    public void UpdateHud()
     {
-        hudElements[0].text = "Vida "  + attributes.hp.ToString();
-        hudElements[1].text = "Ataque " + attributes.damageAmount[0].ToString();
-        hudElements[2].text = "Velocidade " + attributes.attackSpeed.ToString("N1");
+        hudElements[0].text = "Life: " + attributes.hp.ToString() + "/" + totalHp;
+        hudElements[1].text = "Atk: " + attributes.damageAmount[0].ToString();
+        hudElements[2].text = "Speed: " + attributes.attackSpeed.ToString("N1");
     }
+
+    public void InstancePopUp(int value)
+    {
+        return;
+
+        GameObject temp = Instantiate(popUpText);
+        Transform t = temp.transform;
+
+        switch (value)
+        {
+            case 0:
+                t = hudElements[0].transform;
+                break;
+            case 1:
+                t = hudElements[1].transform;
+                break;
+            case 2:
+                t = hudElements[2].transform;
+                break;
+        }
+
+        temp.transform.SetParent(t);
+        temp.transform.localPosition = Vector3.zero;
+
+    }
+
 }

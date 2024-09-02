@@ -103,8 +103,6 @@ public class AutoCombat : MonoBehaviour
 
     #endregion
 
-
-
     private void OnDestroy()
     {
         waveController.NewEnemyEvent -= FindTarget;

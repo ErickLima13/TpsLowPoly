@@ -17,6 +17,7 @@ public class DicesController : MonoBehaviour
     public int randomValue;
 
     public float speedPlayer;
+    public float delayText;
     public int damagePlayer;
 
     public float powerUpTime;
@@ -45,20 +46,24 @@ public class DicesController : MonoBehaviour
             {
                 case 0: // tirar 1 no dado 
                     StartCoroutine("DelayPowerUp");
-                    templateBase = "ganhei velocidade";
+                    templateBase = "Your atk speed up";
+                    hpPlayer.InstancePopUp(2);
                     break;
                 case 1: // tirar 2 no dado 
                     hpPlayer.attributes.damageAmount[0] += 1;
-                    templateBase = "ganhei dano";
+                    templateBase = "Your atk up";
+                    hpPlayer.InstancePopUp(1);
                     break;
                 case 2: // tirar 3 no dado 
-                    hpPlayer.attributes.hp += 5;
-                    templateBase = "ganhei vida";
+                    int randHp = Random.Range(5, waveController.waveNumber * 2);
+                    hpPlayer.totalHp += randHp;
+                    templateBase = "Your max life increase in " + randHp;
+                    hpPlayer.InstancePopUp(0);
                     break;
                 case 3: // tirar 4 no dado 
                     hpPlayer.SendMessage("GetDamage",
                 waveController.waveNumber, SendMessageOptions.DontRequireReceiver);
-                    templateBase = "perdeu " + waveController.waveNumber + " de vida";
+                    templateBase = "You lost " + waveController.waveNumber + " of life";
                     break;
             }
 
@@ -66,7 +71,7 @@ public class DicesController : MonoBehaviour
         }
         else
         {
-            templateBase = "sem dados";
+            templateBase = "No more dices";
         }
 
         UpdateReward();
@@ -76,19 +81,20 @@ public class DicesController : MonoBehaviour
     {
         diceValue.text = "x " + dices.Count;
         diceReward.text = templateBase;
+        hpPlayer.UpdateHud();
         StartCoroutine("DelayPowerUpText");
     }
 
     public void AddDice()
     {
         dices.Add(1);
-        templateBase = "ganhei um dado";
+        templateBase = "You won a dice";
         UpdateReward();
     }
 
     private IEnumerator DelayPowerUpText()
     {
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(delayText);
         diceReward.text = null;
     }
 
