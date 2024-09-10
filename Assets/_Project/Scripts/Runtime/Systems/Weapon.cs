@@ -28,5 +28,10 @@ public class Weapon : ScriptableObject
     {
         ammunition = ammunitionBase;
         ammunitionExtra--;
+
+        if (ammunitionExtra < 0)
+        {
+            ammunitionExtra = 1;
+        }
     }
 }

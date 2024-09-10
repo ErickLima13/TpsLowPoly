@@ -12,28 +12,43 @@ public class EnemyAI : MonoBehaviour
     private RaycastWeapon raycastWeapon;
     private AnimationControl controlWeapon;
 
+    private int idWeapon;
+
     private bool isEndPatrol;
     private bool isWaitPatrol;
     private bool isAim;
+    private bool damaged;
+    private bool isAttackPosition;
 
     private float attackTime;
     private float distancePlayer;
 
+    public EnemyType enemyType;
     public EnemyState currentState;
 
     [Header("Patrol Waypoints")]
-    public int idWaypoint;
     public Transform[] waypoints;
+    public bool isWaitWayPoint;
+    public int idWaypoint;
     private Transform target;
     private Vector3 lookInto;
-    public bool isWaitWayPoint;
+
+    [Header("Safe Points")]
+    public Transform[] safePoints;
+    private int idSafePoint;
+
+    [Header("Attack Points")]
+    public Transform[] attackPoints;
+    public int idAttackPoint;
 
     [Header("Rig")]
     public Rig weaponAim;
+    public Rig handPose;
 
     [Header("Id Weapon")]
     public Transform[] originRaycast;
     public Weapon[] weapons;
+
 
 
     private void Start()
@@ -42,11 +57,15 @@ public class EnemyAI : MonoBehaviour
         fov = GetComponentInChildren<FieldOfView>();
         raycastWeapon = GetComponentInChildren<RaycastWeapon>();
         controlWeapon = GetComponentInChildren<AnimationControl>();
+        idWeapon = controlWeapon.idWeapon;
+        target = GameObject.FindWithTag("Player").transform;
+        raycastWeapon.raycastDestination = target;
 
         animator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
         SetDestinationAgent(transform.position);
         OnStateEnter(currentState);
+
 
         foreach (Weapon weapon in weapons)
         {
@@ -85,6 +104,9 @@ public class EnemyAI : MonoBehaviour
         switch (currentState)
         {
             case EnemyState.Idle:
+                agent.speed = 1.8f;
+                //fov.viewRadius = gameManager.viewRadiusBase;  
+                damaged = false;
                 StartCoroutine("Idle");
                 break;
             case EnemyState.Patrol:
@@ -96,16 +118,41 @@ public class EnemyAI : MonoBehaviour
             case EnemyState.Follow:
                 break;
             case EnemyState.Alert:
-                target = fov.visibleSecondary[0];
                 lookInto = target.position;
                 SetDestinationAgent(transform.position);
                 StartCoroutine("Alert");
                 break;
             case EnemyState.Combat:
-                agent.stoppingDistance = 9;
-                target = fov.visibleTargets[0];
-                raycastWeapon.raycastDestination = target;
-                StartCoroutine("Combat");
+                agent.speed = 3.6f;
+                switch (enemyType)
+                {
+                    case EnemyType.Patrol:
+                        animator.SetBool("isCrouching", false);
+                        LookAtTarget();
+                        fov.viewRadius = 20;
+                        agent.stoppingDistance = 7;
+                        StartCoroutine("Combat");
+                        break;
+                    case EnemyType.Guard:
+                        // ir ate o ponto de ataque
+                        isAttackPosition = false;
+                        agent.stoppingDistance = 0f;
+                        SetDestinationAgent(
+                            attackPoints[idAttackPoint].position);
+                        break;
+                }
+                break;
+            case EnemyState.Run:
+                StartCoroutine("CheckSafePoint");
+                break;
+            case EnemyState.Die:
+                isAim = false;
+                animator.SetBool("isDie", true);
+                agent.enabled = false;
+                handPose.weight = 0;
+                GetComponent<Collider>().enabled = false;
+                controlWeapon.DisableAnimator();
+                originRaycast[idWeapon].parent.gameObject.SetActive(false);
                 break;
         }
 
@@ -125,23 +172,55 @@ public class EnemyAI : MonoBehaviour
             case EnemyState.Follow:
                 break;
             case EnemyState.Combat:
-                isAim = true;
-                SetDestinationAgent(target.position);
-                transform.LookAt(target);
-                distancePlayer = Vector3.Distance(
-                    transform.position, target.position);
+                switch (enemyType)
+                {
+                    case EnemyType.Patrol:
+                        isAim = true;
+                        SetDestinationAgent(target.position);
+                        LookAtTarget();
+                        distancePlayer = Vector3.Distance(
+                            transform.position, target.position);
 
-                if (distancePlayer <= gameManager.distanceToAttack)
-                {
-                    attackTime = 0;
+                        if (distancePlayer <= gameManager.distanceToAttack)
+                        {
+                            attackTime = 0;
+                        }
+                        else
+                        {
+                            attackTime += Time.deltaTime;
+                            if (attackTime >= gameManager.combatTime)
+                            {
+                                OnStateEnter(EnemyState.Idle);
+                            }
+                        }
+                        break;
+                    case EnemyType.Guard:
+                        if (InDestiny() && !isAttackPosition)
+                        {
+                            isAttackPosition = true;
+                            SetDestinationAgent(transform.position);
+                            StartCoroutine("CombatGuard");
+                            animator.SetBool("isCrouching", true);
+                            isAim = false;
+                        }
+                        else if (isAttackPosition)
+                        {
+                            LookAtTarget();
+                        }
+
+
+                        break;
                 }
-                else
+
+
+
+
+                break;
+            case EnemyState.Run:
+                if (InDestiny())
                 {
-                    attackTime += Time.deltaTime;
-                    if (attackTime >= gameManager.combatTime)
-                    {
-                        OnStateEnter(EnemyState.Idle);
-                    }
+                    animator.SetBool("isCrouching", true);
+                    StartCoroutine("WaitInSafeArea");
                 }
 
                 break;
@@ -150,7 +229,7 @@ public class EnemyAI : MonoBehaviour
 
     private void Patroling()
     {
-        if (agent.remainingDistance <= agent.stoppingDistance
+        if (InDestiny()
             && !isEndPatrol && !isWaitPatrol)
         {
             if (isWaitWayPoint)
@@ -163,7 +242,7 @@ public class EnemyAI : MonoBehaviour
             }
 
         }
-        else if (agent.remainingDistance <= agent.stoppingDistance
+        else if (InDestiny()
             && isEndPatrol)
         {
             OnStateEnter(EnemyState.Idle);
@@ -172,21 +251,71 @@ public class EnemyAI : MonoBehaviour
 
     #region Corrotines
 
+    private IEnumerator CombatGuard()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(Random.Range(0.7f,1.5f));
+            isAim = true;
+            animator.SetBool("isCrouching", false);
+
+            yield return new WaitForSeconds(0.5f);
+
+            for (int b = 0; b < weapons[idWeapon].blastShots; b++)
+            {
+                raycastWeapon.StartFire(
+                originRaycast[idWeapon],
+                weapons[idWeapon].weaponDamage);
+                yield return new WaitForSeconds(weapons[idWeapon].delayBetweenBullets);
+            }
+
+            yield return new WaitForSeconds(0.3f);
+
+            isAim = false;
+            animator.SetBool("isCrouching", true);
+            yield return new WaitForSeconds(2f);
+
+            if (attackPoints.Length > 0)
+            {
+                if (gameManager.RandomSystem(100))
+                {
+                    animator.SetBool("isCrouching", false);
+                    yield return new WaitForSeconds(0.3f);
+                    idAttackPoint++;
+                    if (idAttackPoint >= attackPoints.Length)
+                    {
+                        idAttackPoint = 0;
+                    }
+
+                    OnStateEnter(EnemyState.Combat);
+                }
+            }
+        }
+    }
+
     private IEnumerator Idle()
     {
         SetDestinationAgent(transform.position);
         yield return new WaitForSeconds(
             gameManager.idleWaitTime);
 
-        if (gameManager.RandomSystem(gameManager.percPatrol))
+        switch (enemyType)
         {
-            isEndPatrol = false;
-            idWaypoint = 1;
-            OnStateEnter(EnemyState.Patrol);
-        }
-        else
-        {
-            OnStateEnter(EnemyState.Idle);
+            case EnemyType.Patrol:
+                if (gameManager.RandomSystem(gameManager.percPatrol))
+                {
+                    isEndPatrol = false;
+                    //idWaypoint = 1;
+                    OnStateEnter(EnemyState.Patrol);
+                }
+                else
+                {
+                    OnStateEnter(EnemyState.Idle);
+                }
+                break;
+            case EnemyType.Guard:
+
+                break;
         }
     }
 
@@ -201,13 +330,16 @@ public class EnemyAI : MonoBehaviour
 
     private IEnumerator Alert()
     {
-        yield return new WaitForSeconds(
-            gameManager.alertWaitTime);
+        if (!damaged)
+        {
+            yield return new WaitForSeconds(
+        gameManager.alertWaitTime);
+        }
+
         isAim = true;
         agent.stoppingDistance = 3;
         SetDestinationAgent(lookInto);
-        yield return new WaitUntil(() =>
-        agent.remainingDistance <= agent.stoppingDistance);
+        yield return new WaitUntil(() => InDestiny());
 
         if (fov.visibleSecondary.Count > 0)
         {
@@ -219,8 +351,7 @@ public class EnemyAI : MonoBehaviour
             yield return new WaitForSeconds(
                 gameManager.patrolWaitTime);
             agent.stoppingDistance = 1;
-            yield return new WaitUntil(() =>
-            agent.remainingDistance <= agent.stoppingDistance);
+            yield return new WaitUntil(() => InDestiny());
             yield return new WaitForSeconds(
                 gameManager.patrolWaitTime);
             OnStateEnter(EnemyState.Patrol);
@@ -231,42 +362,85 @@ public class EnemyAI : MonoBehaviour
     {
         while (true)
         {
-            if (distancePlayer <= gameManager.distanceToAttack)
+            if (distancePlayer <= gameManager.distanceToAttack &&
+                fov.visibleTargets.Count > 0)
             {
-                for (int b = 0; b < weapons[controlWeapon.idWeapon].blastShots; b++)
+                for (int b = 0; b < weapons[idWeapon].blastShots; b++)
                 {
-                    if (weapons[controlWeapon.idWeapon].ammunition > 0)
+                    if (weapons[idWeapon].ammunition > 0)
                     {
-                        weapons[controlWeapon.idWeapon].ammunition--;
+                        weapons[idWeapon].ammunition--;
                         raycastWeapon.StartFire(
-                        originRaycast[controlWeapon.idWeapon],
-                        weapons[controlWeapon.idWeapon].weaponDamage);
-                        yield return new WaitForSeconds(weapons[controlWeapon.idWeapon].delayBetweenBullets);
+                        originRaycast[idWeapon],
+                        weapons[idWeapon].weaponDamage);
+                        yield return new WaitForSeconds(weapons[idWeapon].delayBetweenBullets);
                     }
                     else
                     {
-                        if (weapons[controlWeapon.idWeapon].ammunition <= 0)
+                        if (weapons[idWeapon].ammunition <= 0)
                         {
-                            if (weapons[controlWeapon.idWeapon].ammunitionExtra > 0)
+
+                            OnStateEnter(EnemyState.Run);
+                            print("vou carregar");
+
+                            if (weapons[idWeapon].ammunitionExtra > 0)
                             {
-                                yield return new WaitForSeconds(weapons[controlWeapon.idWeapon].timeToReaload);
-                                weapons[controlWeapon.idWeapon].Reload();
+
+
                             }
                             else
                             {
-                                OnStateEnter(EnemyState.Run);
+                                // caso a munição acabe
                             }
                         }
                     }
                 }
 
-                yield return new WaitForSeconds(weapons[controlWeapon.idWeapon].delayBetweenShots);
+                yield return new WaitForSeconds(weapons[idWeapon].delayBetweenShots);
             }
             else
             {
                 yield return new WaitForSeconds(gameManager.timeToCheck);
             }
         }
+    }
+
+    private IEnumerator CheckSafePoint()
+    {
+        isAim = false;
+        bool isSafe = false;
+
+        while (!isSafe)
+        {
+            idSafePoint = Random.Range(0, safePoints.Length);
+
+            Vector3 forward = transform.TransformDirection(Vector3.forward);
+            Vector3 toOther = safePoints[idSafePoint].position - transform.position;
+
+            if (Vector3.Dot(forward, toOther) < 0)
+            {
+                agent.stoppingDistance = 0f;
+                agent.SetDestination(safePoints[idSafePoint].position);
+                isSafe = true;
+            }
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        //if (isSafe && weapons[idWeapon].ammunitionExtra > 0)
+        //{
+        //    yield return new WaitForSeconds(weapons[idWeapon].timeToReaload);
+        //    weapons[idWeapon].Reload();
+        //    print("Carreguei");
+        //}
+    }
+
+    private IEnumerator WaitInSafeArea()
+    {
+        yield return new WaitForSeconds(weapons[idWeapon].timeToReaload);
+        weapons[idWeapon].Reload();
+        print("Carreguei");
+        OnStateEnter(EnemyState.Combat);
     }
 
     #endregion
@@ -285,6 +459,18 @@ public class EnemyAI : MonoBehaviour
 
     private void IsVisible(FieldOfView.ViewState vState)
     {
+        if (currentState == EnemyState.Die)
+        {
+            return;
+        }
+
+        if (currentState == EnemyState.Safe)
+        {
+            animator.SetBool("isCrouching", false);
+            OnStateEnter(EnemyState.Run);
+            return;
+        }
+
         if (currentState == EnemyState.Combat
             || currentState == EnemyState.Run)
         {
@@ -313,6 +499,36 @@ public class EnemyAI : MonoBehaviour
 
     public bool Hit()
     {
-        return gameManager.RandomSystem(weapons[controlWeapon.idWeapon].accuracy);
+        return gameManager.RandomSystem(weapons[idWeapon].accuracy);
+    }
+
+    public bool InDestiny()
+    {
+        return agent.remainingDistance <= agent.stoppingDistance;
+    }
+
+    private void Die()
+    {
+        OnStateEnter(EnemyState.Die);
+    }
+
+    private void GetShot()
+    {
+        OnStateEnter(EnemyState.Combat);
+    }
+
+    private void HeardNoise()
+    {
+        damaged = true;
+        OnStateEnter(EnemyState.Alert);
+    }
+
+    private void LookAtTarget()
+    {
+        Quaternion rotTarget = Quaternion.LookRotation(
+            target.position - transform.position);
+        transform.rotation = Quaternion.RotateTowards(
+            transform.rotation, rotTarget, gameManager.rotationSpeed *
+            Time.deltaTime);
     }
 }

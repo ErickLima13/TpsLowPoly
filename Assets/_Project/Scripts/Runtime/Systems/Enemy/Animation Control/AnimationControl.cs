@@ -12,6 +12,12 @@ public class AnimationControl : MonoBehaviour
         animator.SetInteger("idW", idWeapon);
     }
 
+
+    public void DisableAnimator()
+    {
+        animator.enabled = false;
+    }
+
     [ContextMenu("Pistol")]
     public void PlayPistol()
     {

@@ -14,6 +14,9 @@ public class RaycastWeapon : MonoBehaviour
     public bool isEnemy;
     private EnemyAI enemy;
 
+    public float radius;
+    public LayerMask targetMask;
+
     private void Start()
     {
         if (isEnemy)
@@ -24,11 +27,6 @@ public class RaycastWeapon : MonoBehaviour
 
     public void StartFire(Transform raycastOrigin, int valueDamage)
     {
-        if (raycastDestination == null) // minha mudança
-        {
-            return;
-        }
-
         ray.origin = raycastOrigin.position;
         ray.direction = raycastDestination.position - raycastOrigin.position;
 
@@ -47,7 +45,20 @@ public class RaycastWeapon : MonoBehaviour
 
         if (!isEnemy)
         {
+            FeedbackSound();
             FeedbackHit(valueDamage);
+        }
+
+    }
+
+    private void FeedbackSound()
+    {
+        Collider[] targetInRadius = Physics.OverlapSphere(
+           transform.position, radius, targetMask);
+
+        for (int i = 0; i < targetInRadius.Length; i++)
+        {
+            targetInRadius[i].gameObject.SendMessage("HeardNoise",SendMessageOptions.DontRequireReceiver);
         }
     }
 
@@ -65,4 +76,10 @@ public class RaycastWeapon : MonoBehaviour
                 valueDamage, SendMessageOptions.DontRequireReceiver);
         }
     }
+
+    //private void OnDrawGizmos()
+    //{
+    //    Gizmos.color = Color.green;
+    //    Gizmos.DrawWireSphere(transform.position, radius);
+    //}
 }

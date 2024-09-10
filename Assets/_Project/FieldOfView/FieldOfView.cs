@@ -11,7 +11,7 @@ public class FieldOfView : MonoBehaviour
 
     public GameObject AIManager;
 
-    [Range(0, 15)] public float viewRadius;
+    [Range(0, 100)] public float viewRadius;
     [Range(0, 360)] public float viewAngle;
     [Range(0, 360)] public float viewAngleSecondary;
 
@@ -89,41 +89,5 @@ public class FieldOfView : MonoBehaviour
                 }
             }
         }
-    }
-
-    // melhorar isso pra ter um metodo
-
-    public List<Transform> GetList(bool value)
-    {
-        // algo melhor que isso
-
-        if (value)
-        {
-            return visibleTargets;
-        }
-        else
-        {
-            return visibleSecondary;
-        }
-    }
-
-    public bool ThePlayerIsInRange()
-    {
-        return visibleSecondary.Count > 0;
-    }
-
-    public Transform GetPlayer()
-    {
-        return visibleSecondary[0];
-    }
-
-    public bool ThePlayerIsInFirstRange()
-    {
-        return visibleTargets.Count > 0;
-    }
-
-    public Transform GetPlayerInFirst()
-    {
-        return visibleTargets[0];
     }
 }

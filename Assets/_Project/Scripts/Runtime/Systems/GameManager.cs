@@ -1,9 +1,14 @@
 using UnityEngine;
 
 
+public enum EnemyType
+{
+    Patrol, Guard
+}
+
 public enum EnemyState
 {
-    Idle, Patrol, Follow, Alert, Combat, Run
+    Idle, Patrol, Follow, Alert, Combat, Run, Safe, Die
 }
 
 public class GameManager : MonoBehaviour
@@ -16,6 +21,8 @@ public class GameManager : MonoBehaviour
     public float timeToCheck;
     public float distanceToAttack;
     public float combatTime;
+    public float rotationSpeed;
+    public float viewRadiusBase;
     public int percPatrol;
 
     public bool RandomSystem(int perc)
