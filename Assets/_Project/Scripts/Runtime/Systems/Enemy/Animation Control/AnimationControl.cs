@@ -1,17 +1,21 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class AnimationControl : MonoBehaviour
 {
     private Animator animator;
-    public int idRandom;
+    public int idWeapon;
 
     private void Start()
     {
         animator = GetComponent<Animator>();
-        idRandom = Random.Range(0, 2);
-        animator.SetInteger("idW", idRandom);
+        idWeapon = Random.Range(0, 2);
+        animator.SetInteger("idW", idWeapon);
+    }
+
+
+    public void DisableAnimator()
+    {
+        animator.enabled = false;
     }
 
     [ContextMenu("Pistol")]
