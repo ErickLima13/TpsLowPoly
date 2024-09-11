@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq.Expressions;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Animations.Rigging;
@@ -11,6 +12,7 @@ public class EnemyAI : MonoBehaviour
     private FieldOfView fov;
     private RaycastWeapon raycastWeapon;
     private AnimationControl controlWeapon;
+    private RagDollColliders ragDoll;
 
     private int idWeapon;
 
@@ -57,6 +59,7 @@ public class EnemyAI : MonoBehaviour
         fov = GetComponentInChildren<FieldOfView>();
         raycastWeapon = GetComponentInChildren<RaycastWeapon>();
         controlWeapon = GetComponentInChildren<AnimationControl>();
+        ragDoll = GetComponentInChildren<RagDollColliders>();
         idWeapon = controlWeapon.idWeapon;
         target = GameObject.FindWithTag("Player").transform;
         raycastWeapon.raycastDestination = target;
@@ -152,7 +155,8 @@ public class EnemyAI : MonoBehaviour
                 handPose.weight = 0;
                 GetComponent<Collider>().enabled = false;
                 controlWeapon.DisableAnimator();
-                originRaycast[idWeapon].parent.gameObject.SetActive(false);
+                originRaycast[idWeapon].parent.gameObject.SetActive(false);              
+                StartCoroutine("DieAnimation");
                 break;
         }
 
@@ -250,6 +254,13 @@ public class EnemyAI : MonoBehaviour
     }
 
     #region Corrotines
+
+    private IEnumerator DieAnimation()
+    {
+        ragDoll.ActiveRagDoll();
+        yield return new WaitForSeconds(1f);
+        animator.enabled = false;
+    }
 
     private IEnumerator CombatGuard()
     {
@@ -514,13 +525,20 @@ public class EnemyAI : MonoBehaviour
 
     private void GetShot()
     {
-        OnStateEnter(EnemyState.Combat);
+        if (currentState != EnemyState.Combat)
+        {
+            OnStateEnter(EnemyState.Combat);
+        }
     }
 
     private void HeardNoise()
     {
         damaged = true;
-        OnStateEnter(EnemyState.Alert);
+        if (currentState != EnemyState.Alert)
+        {
+            OnStateEnter(EnemyState.Alert);
+        }
+     
     }
 
     private void LookAtTarget()
